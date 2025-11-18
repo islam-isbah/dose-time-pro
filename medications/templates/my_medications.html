@@ -1,0 +1,68 @@
+{% extends '_layout.html' %}
+{% block content %}
+
+<div class="create-div" id="createModal">
+    {% include "partials/create_modal.html" %}
+</div>
+
+<h1 class="table-header">My Medications</h1>
+
+<div class="table-div" id="medTable">
+    {% include "partials/medications_table.html" %}
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" id="editModalContent"></div>
+    </div>
+</div>
+
+<div class="delete-partial-div" id="deletePartial">
+    {% include "partials/delete_modal.html" %}
+</div>
+
+<script>
+    $("#medForm").submit(function (e) {
+        e.preventDefault();
+        crudCreate({
+            form: $(this),
+            tableUrl: "/medications/table/",
+            tableSelector: "#medTable",
+            modalSelector: "#exampleModal"
+        });
+    });
+
+    $(document).on("click", ".edit-btn", function () {
+        crudLoadEdit({
+            url: `/medications/${$(this).data("id")}/edit/`,
+            modalSelector: "#editModal",
+            contentSelector: "#editModalContent"
+        });
+    });
+
+    $(document).on("click", "#editBtn", function () {
+        crudUpdate({
+            form: $("#editForm"),
+            tableUrl: "/medications/table/",
+            tableSelector: "#medTable",
+            modalSelector: "#editModal"
+        });
+    });
+
+    let medToDelete = null;
+    $(document).on("click", ".delete-btn", function () {
+        medToDelete = $(this).data("id");
+    });
+
+    $("#confirmDeleteBtn").click(function () {
+        crudDelete({
+            url: `/medications/delete/${medToDelete}/`,
+            rowSelector: `#med-row-${medToDelete}`,
+            modalSelector: "#deleteModal",
+            tableUrl: "/medications/table/",
+            tableSelector: "#medTable"
+        });
+    });
+</script>
+
+{% endblock %}

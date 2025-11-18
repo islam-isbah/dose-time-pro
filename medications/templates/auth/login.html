@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+</head>
+
+<body>
+    <section class="vh-100">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card shadow-2-strong">
+                        <div class="card-body p-5">
+
+                            <h3 class="mb-5 text-center">Login</h3>
+                            <div>
+                                {% if errors %}
+                                {% for key, value in errors.items %}
+                                <div class="alert alert-danger">{{ value }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+                            <form action="/login/" method="post">
+                                {% csrf_token %}
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="email">Email</label>
+
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="Enter email" required />
+                                </div>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="password">Password</label>
+
+                                    <input type="password" name="password" class="form-control form-control-lg" placeholder="Enter password" required />
+                                </div>
+
+                                <button class="form-control form-control-lg btn-submit" type="submit">Login</button>
+
+                                <div class="mb-4 mt-4">
+                                    <span class="form-check-label"> Don't have an account?</span>
+                                    <a href="/register/">Register</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+</body>
+
+</html>

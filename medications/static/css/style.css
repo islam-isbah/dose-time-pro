@@ -1,0 +1,61 @@
+.navbar {
+    background: #fff;
+    box-shadow: 0 4px 6px rgba(22, 22, 26, 0.18);
+}
+
+.nav-link {
+    color: #000;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.developed-name {
+    font-size: 12px;
+    margin-bottom: 0;
+    color: #757575;
+}
+
+.copy-right {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.close {
+    border: none;
+    background: none;
+    font-size: 25px;
+}
+
+.modal-title {
+    margin-inline-end: auto;
+}
+
+.table-header {
+    background: #5b7fa6;
+    color: #FFF !important;
+    font-size: 14px !important;
+    line-height: 38px;
+    padding-inline-start: 12px;
+    margin-bottom: 0 !important;
+}
+
+.table-div {
+    height: 450px;
+    overflow: auto;
+}
+
+svg {
+    width: 30px;
+    cursor: pointer;
+}
+
+.alert-danger {
+    background: none;
+    border: none;
+    padding: 5px 0;
+    text-align: center;
+    margin: 0;
+}
