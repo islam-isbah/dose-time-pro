@@ -1,6 +1,7 @@
 from django.db import models
 import re
 import bcrypt
+from datetime import datetime
 
 # function to check if the user email is exists or not
 def is_exists(email):
@@ -62,10 +63,10 @@ class User(models.Model):
             self.password = bcrypt.hashpw(self.password.encode(), bcrypt.gensalt()).decode()
         super().save(*args, **kwargs)
 
+#add validation for medication
 class MedicationManager(models.Manager):
     def medication_validator(self, postData):
         errors = {}
-
         name = postData.get('name', '').strip()
         if len(name) < 3:
             errors["name"] = "Medication name should be at least 3 characters"
@@ -74,7 +75,11 @@ class MedicationManager(models.Manager):
 
         dosage = postData.get('dosage', '').strip()
         if len(dosage) < 3:
-            errors["dosage"] = "Dosage is required"
+            errors["dosage"] = "Dosage should be at least 3 characters"
+
+        instructions = postData.get('notes', '') 
+        if len(instructions ) > 255:
+            errors['notes'] = "Notes cannot exceed 255 characters."
 
         return errors
 
@@ -88,9 +93,38 @@ class Medication(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     objects = MedicationManager()
 
+class ReminderManager(models.Manager):
+    def reminder_validator(self, postData, user):
+        errors = {}
+        # med_id = postData.get('name')
+        # if not med_id:
+        #     errors['name'] = "Medication is required."
+        # else:
+        #     try:
+        #         medication = Medication.objects.get(id=med_id, user=user)
+        #     except Medication.DoesNotExist:
+        #         errors['name'] = "Invalid medication selected."
+
+        reminder_time_str = postData.get('reminder_time', '')
+        if not reminder_time_str:
+            errors['reminder_time'] = "Reminder time is required."
+        else:
+            try:
+                reminder_time = datetime.strptime(reminder_time_str, "%Y-%m-%dT%H:%M")
+                if reminder_time <= datetime.now():
+                    errors['reminder_time'] = "Reminder time must be in the future."
+            except ValueError:
+                errors['reminder_time'] = "Invalid date/time format."
+
+        notes = postData.get('notes', '') 
+        if len(notes) > 255:
+            errors['notes'] = "Notes cannot exceed 255 characters."
+
+        return errors
 
 
 
+#create reminder table in database
 class Reminder(models.Model):
     medication = models.ForeignKey(Medication, related_name="reminders", on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name="reminders", on_delete=models.CASCADE)
@@ -99,9 +133,9 @@ class Reminder(models.Model):
     notes = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    objects = ReminderManager()
 
-    # def __str__(self):
-    #     return f"Reminder for {self.user.name} at {self.reminder_time}"
+
 
 
 #This functions is used to add a new user to th User table
@@ -150,3 +184,43 @@ def edit_medications(postData,id):
     meds.instructions = postData['instructions']
     meds.save()
     return meds
+
+
+def create_reminder(postData, user):
+    medication = Medication.objects.get(id=postData['name'], user=user)
+    reminder_time = postData['reminder_time']
+    notes = postData['notes']
+    return Reminder.objects.create(medication=medication,user=user, reminder_time=reminder_time, notes=notes, status="Pending")
+
+# def  existing_med_ids(user):
+#     return Reminder.objects.filter(user=user)
+def get_all_reminders():
+    return Reminder.objects.all()
+
+def get_user_data(user):
+    return {
+        "reminders": Reminder.objects.filter(user=user),
+        "medications": Medication.objects.filter(user=user)
+    }
+
+def get_logged_user(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return None
+    return User.objects.get(id=user_id)
+
+def get_reminder(id, user):
+    return Reminder.objects.filter(id=id, user=user).first()
+
+def update_reminder_data(postData, id, user):
+    reminder = Reminder.objects.filter(id=id, user=user).first()
+    if reminder:
+        reminder.reminder_time = postData['reminder_time']
+        reminder.notes = postData['notes']
+        reminder.medication_id = int(postData['name'])
+        reminder.save()
+    return reminder
+
+def delete_reminders(id):
+    reminder_del = Reminder.objects.get(id=id)
+    reminder_del.delete()

@@ -4,7 +4,7 @@ from .models import User
 from django.contrib import messages
 from django.http import JsonResponse
 from django.http import JsonResponse
-from .models import Medication
+from .models import Medication, Reminder
 
 
 # Root route render a page where users can register or login
@@ -123,3 +123,81 @@ def edit_medications(request,id):
             meds = models.edit_medications(request.POST,id)
             return JsonResponse({"success": True})
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
+
+def reminder_page(request):
+    user =models.get_logged_user(request)
+    if not user:
+        return redirect('/')
+
+    context =models.get_user_data(user)
+    return render(request, "my_reminders.html", context)
+
+def create_reminder(request):
+    if request.method == "POST":
+        if 'user_id' not in request.session:
+            return JsonResponse({"success": False, "errors": {"user": "User not logged in"}})
+        user = User.objects.get(id=request.session['user_id'])
+
+        errors = models.Reminder.objects.reminder_validator(request.POST, user)    
+        if errors:
+            return JsonResponse({"success": False, "errors": errors})
+
+        models.create_reminder(request.POST, user)
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+def reminders_table(request):
+    user =models.get_logged_user(request)
+    if not user:
+        return redirect('/')
+
+    context =models.get_user_data(user)
+    return render(request, "partials/reminders_table.html", context)
+
+def edit_reminders_page(request, id):
+    user = models.get_logged_user(request)
+    reminder = models.get_reminder(id, user)
+
+    if not reminder:
+        return JsonResponse({"error": "Reminder not found"}, status=404)
+    
+    reminder_medication_id = reminder.medication.id if reminder.medication else None
+
+    context = {
+        'reminder': reminder,
+        'medications': models.get_user_data(user),
+        'all_meds': models.get_all_meds(),
+        'reminder_medication_id': reminder_medication_id,
+    }
+    return render(request, "partials/edit_reminders.html", context)
+
+def update_reminders(request, id):
+    if request.method == "POST" :
+        user = models.get_logged_user(request)
+        reminder = models. update_reminder_data(request.POST, id, user)
+        if not reminder:
+            return JsonResponse({"success": False, "error": "Reminder not found"}, status=404)
+
+        return JsonResponse({"success": True})
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+
+def delete_reminders(request, id):
+    if request.method == "POST":
+        try:
+            reminder_del = models.delete_reminders(id)
+            return JsonResponse({"success": True})
+        except Reminder.DoesNotExist:
+            return JsonResponse({"success": False, "error": "Medication not found"}, status=404)
+
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
+
+def about_page(request):
+    return render(request, "about_us.html")
+
+def contact_page(request):
+    return render(request, "contact.html")

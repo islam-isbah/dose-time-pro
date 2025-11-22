@@ -1,0 +1,46 @@
+<button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#reminderModal">
+    Add New
+</button>
+
+<div class="modal fade" id="reminderModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Add Reminders</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="messages"></div>
+
+            <form id="medForm" action="/reminders/create/" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <select name="name"  class="form-select" aria-label="Default select example" required>
+                            {% for med in medications %}
+                            <option value="{{ med.id }}">{{ med.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Time</label>
+                        <input type="datetime-local" name="reminder_time" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="notes" class="form-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

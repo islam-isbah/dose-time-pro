@@ -1,61 +1,186 @@
-.navbar {
-    background: #fff;
-    box-shadow: 0 4px 6px rgba(22, 22, 26, 0.18);
-}
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+    }
 
-.nav-link {
-    color: #000;
-}
+    html,
+    body {
+        height: 100%;
+        margin: 0;
+        background-color: #eef2f7;
+    }
 
-footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-}
+    body {
+        display: flex;
+        flex-direction: column;
+    }
 
-.developed-name {
-    font-size: 12px;
-    margin-bottom: 0;
-    color: #757575;
-}
+    footer {
+        margin-top: auto;
+    }
 
-.copy-right {
-    background-color: rgba(0, 0, 0, 0.05);
-}
+    .navbar {
+        background: #fff;
+        box-shadow: -14px -13px 6px rgba(22, 22, 26, 0.18);
+    }
 
-.close {
-    border: none;
-    background: none;
-    font-size: 25px;
-}
+    .nav-link {
+        color: #000;
+    }
 
-.modal-title {
-    margin-inline-end: auto;
-}
+    .copy-right {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
 
-.table-header {
-    background: #5b7fa6;
-    color: #FFF !important;
-    font-size: 14px !important;
-    line-height: 38px;
-    padding-inline-start: 12px;
-    margin-bottom: 0 !important;
-}
+    .close {
+        border: none;
+        background: none;
+        font-size: 25px;
+    }
 
-.table-div {
-    height: 450px;
-    overflow: auto;
-}
+    .modal-title {
+        margin-inline-end: auto;
+    }
 
-svg {
-    width: 30px;
-    cursor: pointer;
-}
+    .table-header {
+        background: #5b7fa6;
+        color: #FFF !important;
+        font-size: 14px !important;
+        line-height: 38px;
+        padding-inline-start: 12px;
+        margin-bottom: 0 !important;
+    }
 
-.alert-danger {
-    background: none;
-    border: none;
-    padding: 5px 0;
-    text-align: center;
-    margin: 0;
-}
+    .table-div {
+        height: 450px;
+        overflow: auto;
+    }
+
+    svg {
+        width: 30px;
+        cursor: pointer;
+    }
+
+    .alert-danger {
+        background: none;
+        border: none;
+        padding: 5px 0;
+        text-align: center;
+        margin: 0;
+    }
+
+    .edit-btn {
+        fill: #198754;
+    }
+
+    .delete-btn {
+        fill: #F44336;
+    }
+
+    .logo-img {
+        height: 30px;
+    }
+
+    .action-icons {
+        width: 85px;
+    }
+
+    .about-container {
+        width: 85%;
+        margin: 60px auto;
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .about-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 25px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+        transition: .3s ease;
+    }
+
+    .about-card:hover {
+        transform: translateY(-4px);
+        background-color: #2a7a44;
+        color: #fff;
+    }
+
+    .about-card h2 {
+        font-size: 28px;
+        margin-bottom: 12px;
+        color: #2a7a44;
+    }
+
+    .about-card:hover h2 {
+        color: #fff;
+    }
+
+    .about-card p {
+        line-height: 1.7;
+        font-size: 17px;
+    }
+
+    .btn-main {
+        display: inline-block;
+        margin-top: 18px;
+        background: #2a7a44;
+        color: #fff;
+        padding: 12px 22px;
+        border-radius: 7px;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .btn-main:hover {
+        background: #256b3b;
+        cursor: pointer;
+    }
+
+    .bell {
+        position: relative;
+        margin-inline-end: 30px
+    }
+
+    .rounded-pill {
+        position: absolute;
+        top: -5px;
+        left: 13px;
+    }
+
+    .dropdown-menu-end[data-bs-popper] {
+        right: 30px !important
+    }
+
+    @media (max-width: 768px) {
+        .about-container {
+            width: 90%;
+            margin: 40px auto;
+        }
+
+        .about-card h2 {
+            font-size: 24px;
+        }
+
+        .about-card p {
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 450px) {
+        .about-card {
+            padding: 20px;
+        }
+
+        .about-card h2 {
+            font-size: 22px;
+        }
+
+        .btn-main {
+            width: 100%;
+            text-align: center;
+        }
+    }

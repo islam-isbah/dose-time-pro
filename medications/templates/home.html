@@ -1,29 +1,29 @@
 {% extends '_Layout.html' %}
+{% load static %}
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/home.css' %}">
+<h1 class="welcome-user">Welcome, {{ user.name }}</h1> <!-- لا تنساها --> 
 
-<h1>Welcome, {{ user.name }}</h1>
+<section class="hero">
+    <div class="hero-text">
+        <h2 class="hero-title">Smart Medication Reminders</h2>
+        <p>Manage your medication easily and receive smart reminders to protect your health every day.</p>
+        <a href="/login" class="btn-main">Login</a>
+        <a href="/register" class="btn-main">Register</a>
+    </div>
 
+    <img class="hero-img" src="{% static 'img/dosetime.jpg' %}">
+</section>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+<section class="features">
+    <h2>Why DoseTime?</h2>
+    <div class="cards">
+        <div class="card">⏱️ Timely reminders</div>
+        <div class="card">💊 Easy medication management</div>
+        <div class="card">📱 Smart notifications</div>
+        <div class="card">📊 Track your progress</div>
+    </div>
+</section>
 
 
 {% endblock %}

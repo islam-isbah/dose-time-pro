@@ -1,0 +1,43 @@
+<div class="modal-header">
+    <h5 class="modal-title">Edit</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<div class="modal-body">
+    <div class="messages"></div>
+
+    <form id="editForm" action="/reminders/{{reminder.id}}/update/" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+    {% csrf_token %}
+    <div class="mb-3">
+        <select name="name" class="form-select" required>
+            {% for med in all_meds %}
+                <option value="{{ med.id }}"
+                    {% if med.id == reminder_medication_id %}
+                        selected="selected"
+                    {% endif %}>
+                    {{ med.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Time</label>
+            <input type="datetime-local" name="reminder_time" value="{{ reminder.reminder_time|date:'Y-m-d\\TH:i' }}"
+                class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Notes</label>
+            <textarea name="notes" class="form-control">{{ reminder.notes }}</textarea>
+        </div>
+    </form>
+</div>
+
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    <button type="button" class="btn btn-primary" id="editBtn">Save</button>
+</div>

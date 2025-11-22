@@ -14,4 +14,12 @@ urlpatterns = [
     path('medications/delete/<int:id>/', views.delete_medication),
     path('medications/<int:id>/edit/', views.edit_page),
     path('medications/<int:id>/update/',views.edit_medications),
+    path('reminders/', views.reminder_page),
+    path('reminders/create/', views.create_reminder),
+    path('reminders/table/', views.reminders_table),
+    path('reminders/<int:id>/edit/', views.edit_reminders_page),
+    path('reminders/<int:id>/update/', views.update_reminders),
+    path('reminders/<int:id>/delete/', views.delete_reminders),
+    path('about/', views.about_page),
+    path('contact/', views.contact_page),
 ]
