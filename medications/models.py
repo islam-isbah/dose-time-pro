@@ -2,6 +2,7 @@ from django.db import models
 import re
 import bcrypt
 from datetime import datetime
+from django.core.mail import send_mail
 
 # function to check if the user email is exists or not
 def is_exists(email):
@@ -262,3 +263,10 @@ def  create_contact(postData):
     email = postData['email']
     message = postData['message']
     ContactMessage.objects.create(name=name, email=email, message=message)
+    send_mail(
+        subject=f"رسالة جديدة من {name}",
+        message=f"الاسم: {name}\nالبريد: {email}\n\n{message}",
+        from_email=email,
+        recipient_list=['islam.aboisbah@gmail.com'],
+        fail_silently=False,
+    )
