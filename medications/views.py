@@ -230,7 +230,7 @@ def contact_page(request):
 
 def create_contact(request):
     if request.method == "POST":
-        errors = models.ContactMessage.objects.contact_validator(request.POST)
+        errors =models.validate_contact(request.POST)
         if len(errors) > 0:
             for key, value in errors.items():
                 messages.error(request, value)

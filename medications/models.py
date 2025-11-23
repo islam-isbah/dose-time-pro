@@ -232,37 +232,29 @@ def delete_reminders(id):
     reminder_del = Reminder.objects.get(id=id)
     reminder_del.delete()
 
-class ContactMessageManager(models.Manager):
-    def contact_validator(self, postData):
-        errors = {}
-        
-        name = postData.get('contact_name', '').strip()
-        if len(name) < 3:
-            errors['contact_name'] = "Name must be at least 3 characters"
-        
-        email = postData.get('email', '').strip()
-        EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
-        if not EMAIL_REGEX.match(email):
-            errors['email'] = "Invalid email address"
-        
-        message = postData.get('message', '').strip()
-        if len(message) < 10:
-            errors['message'] = "Message must be at least 10 characters"
-        
-        return errors
+def validate_contact(postData):
+    errors = {}
+    
+    name = postData.get('contact_name', '').strip()
+    if len(name) < 3:
+        errors['contact_name'] = "Name must be at least 3 characters"
+    
+    email = postData.get('email', '').strip()
+    EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
+    if not EMAIL_REGEX.match(email):
+        errors['email'] = "Invalid email address"
+    
+    message = postData.get('message', '').strip()
+    if len(message) < 10:
+        errors['message'] = "Message must be at least 10 characters"
+    
+    return errors
 
-class ContactMessage(models.Model):
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    message = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    objects = ContactMessageManager()
 
 def  create_contact(postData):
     name = postData['contact_name']
     email = postData['email']
     message = postData['message']
-    ContactMessage.objects.create(name=name, email=email, message=message)
     send_mail(
         subject=f"رسالة جديدة من {name}",
         message=f"الاسم: {name}\nالبريد: {email}\n\n{message}",
