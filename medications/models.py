@@ -45,10 +45,6 @@ class UserManager(models.Manager):
             return user
         return None
 
-
-
-
-
 class User(models.Model):
     name = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
@@ -96,14 +92,14 @@ class Medication(models.Model):
 class ReminderManager(models.Manager):
     def reminder_validator(self, postData, user):
         errors = {}
-        # med_id = postData.get('name')
-        # if not med_id:
-        #     errors['name'] = "Medication is required."
-        # else:
-        #     try:
-        #         medication = Medication.objects.get(id=med_id, user=user)
-        #     except Medication.DoesNotExist:
-        #         errors['name'] = "Invalid medication selected."
+        med_id = postData.get('name')
+        if not med_id:
+            errors['name'] = "Medication is required."
+        else:
+            try:
+                medication = Medication.objects.get(id=med_id, user=user)
+            except Medication.DoesNotExist:
+                errors['name'] = "Invalid medication selected."
 
         reminder_time_str = postData.get('reminder_time', '')
         if not reminder_time_str:
@@ -122,8 +118,6 @@ class ReminderManager(models.Manager):
 
         return errors
 
-
-
 #create reminder table in database
 class Reminder(models.Model):
     medication = models.ForeignKey(Medication, related_name="reminders", on_delete=models.CASCADE)
@@ -136,8 +130,6 @@ class Reminder(models.Model):
     objects = ReminderManager()
 
 
-
-
 #This functions is used to add a new user to th User table
 def register(request_data):
     your_name = request_data['your_name']
@@ -145,7 +137,6 @@ def register(request_data):
     password = request_data['password'] #hash password
     user = User.objects.create(name=your_name, email=email,password=password)
     return user
-
 
 def get_user(email):
     try:
@@ -192,8 +183,7 @@ def create_reminder(postData, user):
     notes = postData['notes']
     return Reminder.objects.create(medication=medication,user=user, reminder_time=reminder_time, notes=notes, status="Pending")
 
-# def  existing_med_ids(user):
-#     return Reminder.objects.filter(user=user)
+
 def get_all_reminders():
     return Reminder.objects.all()
 
@@ -215,12 +205,51 @@ def get_reminder(id, user):
 def update_reminder_data(postData, id, user):
     reminder = Reminder.objects.filter(id=id, user=user).first()
     if reminder:
-        reminder.reminder_time = postData['reminder_time']
+        old_time = reminder.reminder_time
+        new_time = postData['reminder_time']
+
+        reminder.reminder_time = new_time
         reminder.notes = postData['notes']
         reminder.medication_id = int(postData['name'])
+
+        if reminder.status == "Done" and str(old_time) != new_time:
+            reminder.status = "Pending"
+
         reminder.save()
     return reminder
 
 def delete_reminders(id):
     reminder_del = Reminder.objects.get(id=id)
     reminder_del.delete()
+
+class ContactMessageManager(models.Manager):
+    def contact_validator(self, postData):
+        errors = {}
+        
+        name = postData.get('contact_name', '').strip()
+        if len(name) < 3:
+            errors['contact_name'] = "Name must be at least 3 characters"
+        
+        email = postData.get('email', '').strip()
+        EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
+        if not EMAIL_REGEX.match(email):
+            errors['email'] = "Invalid email address"
+        
+        message = postData.get('message', '').strip()
+        if len(message) < 10:
+            errors['message'] = "Message must be at least 10 characters"
+        
+        return errors
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    objects = ContactMessageManager()
+
+def  create_contact(postData):
+    name = postData['contact_name']
+    email = postData['email']
+    message = postData['message']
+    ContactMessage.objects.create(name=name, email=email, message=message)

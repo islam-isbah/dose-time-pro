@@ -22,4 +22,8 @@ urlpatterns = [
     path('reminders/<int:id>/delete/', views.delete_reminders),
     path('about/', views.about_page),
     path('contact/', views.contact_page),
+    path('contact/create/', views.create_contact),
+    path('api/notifications/', views.get_notifications, name='get_notifications'),
+    path('api/upcoming-reminders/', views.get_upcoming_reminders, name='upcoming_reminders'),
+    path('reminders/<int:id>/mark-done/', views.mark_reminder_done, name='mark_reminder_done'),
 ]

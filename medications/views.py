@@ -3,9 +3,9 @@ from . import models
 from .models import User
 from django.contrib import messages
 from django.http import JsonResponse
-from django.http import JsonResponse
 from .models import Medication, Reminder
-
+from django.utils import timezone
+import pytz
 
 # Root route render a page where users can register or login
 def index(request):
@@ -201,3 +201,124 @@ def about_page(request):
 
 def contact_page(request):
     return render(request, "contact.html")
+
+def create_contact(request):
+    if request.method == "POST":
+        errors = models.ContactMessage.objects.contact_validator(request.POST)
+        if len(errors) > 0:
+            for key, value in errors.items():
+                messages.error(request, value)
+                return render(request, "contact.html", {
+                'errors': errors,
+            })
+
+        models.create_contact(request.POST)
+        return redirect("/contact/")
+    return redirect("/contact/")
+
+def get_notifications(request):
+    user = models.get_logged_user(request)
+    if not user:
+        return JsonResponse({"success": False, "error": "Not authenticated"})
+    
+    palestine_tz = pytz.timezone('Asia/Jerusalem')  
+    now = timezone.now()
+    now_palestine = now.astimezone(palestine_tz)
+    
+    due_reminders = Reminder.objects.filter(
+        user=user,
+        reminder_time__lte=now, 
+        status="Pending"
+    ).order_by('-reminder_time')
+        
+    shown_ids = request.session.get('shown_notification_ids', [])
+    
+    notifications = []
+    new_shown_ids = list(shown_ids) 
+    
+    for reminder in due_reminders:
+        reminder_time_palestine = reminder.reminder_time.astimezone(palestine_tz)
+        
+        if reminder.id not in shown_ids:
+            notifications.append({
+                "id": reminder.id,
+                "medication": reminder.medication.name,
+                "time": reminder_time_palestine.strftime("%Y-%m-%d %H:%M"),
+                "notes": reminder.notes or "",
+            })
+            new_shown_ids.append(reminder.id)
+    
+    request.session['shown_notification_ids'] = new_shown_ids
+    
+    return JsonResponse({
+        "success": True,
+        "notifications": notifications,
+        "count": len(notifications),
+        "debug": {
+            "server_time_utc": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "server_time_palestine": now_palestine.strftime("%Y-%m-%d %H:%M:%S"),
+            "total_due": due_reminders.count(),
+            "new_notifications": len(notifications)
+        }
+    })
+
+def get_upcoming_reminders(request):
+    user = models.get_logged_user(request)
+    if not user:
+        return JsonResponse({"success": False, "error": "Not authenticated"})
+    
+    palestine_tz = pytz.timezone('Asia/Jerusalem')
+    now = timezone.now()
+    now_palestine = now.astimezone(palestine_tz)
+    
+    due_reminders = Reminder.objects.filter(
+        user=user,
+        reminder_time__lte=now,
+        status="Pending"
+    )
+    
+    pending_count = due_reminders.count()    
+    reminders_list = []
+
+    if pending_count > 0:
+        reminders = due_reminders.order_by('-reminder_time')[:10]
+        
+        for reminder in reminders:
+            reminder_time_palestine = reminder.reminder_time.astimezone(palestine_tz)
+            reminders_list.append({
+                "id": reminder.id,
+                "medication": reminder.medication.name,
+                "time": reminder_time_palestine.strftime("%Y-%m-%d %H:%M"),
+                "notes": reminder.notes or ""
+            })
+    
+    return JsonResponse({
+        "success": True,
+        "reminders": reminders_list,
+        "count": pending_count,
+        "debug": {
+            "server_time_utc": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "server_time_palestine": now_palestine.strftime("%Y-%m-%d %H:%M:%S"),
+            "timezone": "Asia/Jerusalem (Palestine)"
+        }
+    })
+
+def mark_reminder_done(request, id):
+    if request.method == "POST":
+        user = models.get_logged_user(request)
+        reminder = Reminder.objects.filter(id=id, user=user).first()
+        
+        if reminder:
+            reminder.status = "Done"
+            reminder.save()
+            
+            shown_ids = request.session.get('shown_notification_ids', [])
+            if id in shown_ids:
+                shown_ids.remove(id)
+                request.session['shown_notification_ids'] = shown_ids
+            
+            return JsonResponse({"success": True})
+        
+        return JsonResponse({"success": False, "error": "Reminder not found"}, status=404)
+    
+    return JsonResponse({"success": False, "error": "Invalid request"}, status=400)

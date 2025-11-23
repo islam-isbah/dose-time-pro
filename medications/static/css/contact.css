@@ -74,7 +74,6 @@
     border: 2px solid #256b3b;
 }
 
-/* معلومات التواصل */
 .contact-info {
     margin-top: 25px;
     color: #2a7a44;
@@ -119,4 +118,21 @@
     .btn-main {
         width: 100%;
     }
+}
+
+.input-error {
+    border: 2px solid #dc3545 !important;
+    background-color: #fff5f5;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.875rem;
+    display: block;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.form-group {
+    margin-bottom: 20px;
 }

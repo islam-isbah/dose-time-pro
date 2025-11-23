@@ -20,9 +20,27 @@
 }
 
 .welcome-user {
+    font-size: 48px;
+    font-weight: 700;
+    color: #2E7D32; 
     width: 85%;
     margin: 0 auto;
+    animation: fadeIn 1s ease forwards;
+    text-transform: capitalize; 
+    letter-spacing: 1px;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 .hero-text {
     max-width: 480px;
