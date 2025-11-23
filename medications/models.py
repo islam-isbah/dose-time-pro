@@ -152,14 +152,23 @@ def add_medications(postData,user):
     meds = Medication.objects.create(name=name, dosage=dosage, instructions=instructions, user=user)
     return meds
 
-def get_all_meds():
-    return Medication.objects.all()
+def get_all_meds(user):
+    return Medication.objects.filter(user=user)
 
 def get_all_user():
     return User.objects.all()
 
-def get_specific_user(request):
-    return User.objects.get(id=request.session['user_id'])
+# def get_specific_user(request):
+#     return User.objects.get(id=request.session['user_id'])
+
+def get_current_user(request):
+    user_id = request.session.get('user_id')
+    if not user_id:
+        return None
+    try:
+        return User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return None
 
 def delete_medication(id):
     med = Medication.objects.get(id=id)

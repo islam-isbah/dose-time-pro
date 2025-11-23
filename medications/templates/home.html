@@ -1,15 +1,23 @@
 {% extends '_Layout.html' %}
 {% load static %}
+{% block title %}Home{% endblock %}
 {% block content %}
+
 <link rel="stylesheet" href="{% static 'css/home.css' %}">
-<h1 class="welcome-user">Welcome, {{ user.name }}</h1> <!-- لا تنساها --> 
+<h1 class="welcome-user">
+    {% if is_authenticated %}
+        Welcome, {{ user.name }}
+    {% endif %}
+</h1>
 
 <section class="hero">
     <div class="hero-text">
         <h2 class="hero-title">Smart Medication Reminders</h2>
         <p>Manage your medication easily and receive smart reminders to protect your health every day.</p>
-        <a href="/login" class="btn-main">Login</a>
-        <a href="/register" class="btn-main">Register</a>
+        {% if not is_authenticated %}
+            <a href="/login/" class="btn-main">Login</a>
+            <a href="/register/" class="btn-main">Register</a>
+        {% endif %}
     </div>
 
     <img class="hero-img" src="{% static 'img/dosetime.jpg' %}">

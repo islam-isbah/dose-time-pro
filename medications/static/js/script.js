@@ -106,44 +106,31 @@ $(document).on('hidden.bs.modal', '.modal', function () {
     $("body").removeClass("modal-open");
 });
 
-// متغيرات عامة
 let shownNotifications = new Set();
 let notificationCheckInterval = null;
 
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+    if (!document.cookie) return null;
+    
+    const cookie = document.cookie.split(';').find(c => 
+        c.trim().startsWith(name + '=')
+    );
+    
+    return cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
 }
 
 function requestNotificationPermission() {
     if ("Notification" in window && Notification.permission === "default") {
-        Notification.requestPermission().then(function(permission) {
-            if (permission === "granted") {
-            }
-        });
+        Notification.requestPermission();
     }
 }
 
 function showBrowserNotification(notification) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        if (shownNotifications.has(notification.id)) {
-            return;
-        }
+    if ("Notification" in window && Notification.permission === "granted" && 
+        !shownNotifications.has(notification.id)) {
         
         const notif = new Notification("⏰ تذكير بالدواء", {
             body: `حان موعد دواء: ${notification.medication}\n${notification.notes || 'لا توجد ملاحظات'}`,
-            icon: "/static/images/pill-icon.png",
-            badge: "/static/images/pill-icon.png",
             tag: `reminder-${notification.id}`,
             requireInteraction: true,
             vibrate: [200, 100, 200]
@@ -162,11 +149,10 @@ function showBrowserNotification(notification) {
 function addNotificationToDropdown(notification) {
     const dropdown = $('.dropdown-menu');
     
-    // تحقق من عدم وجود نفس الإشعار
     if (dropdown.find(`[data-notification-id="${notification.id}"]`).length > 0) {
         return;
     }
-        
+    
     const item = `
         <li class="dropdown-item notification-item" data-notification-id="${notification.id}">
             <div class="notification-content">
@@ -174,9 +160,7 @@ function addNotificationToDropdown(notification) {
                     <strong class="text-primary">${notification.medication}</strong>
                     <span class="badge bg-danger">جديد</span>
                 </div>
-                <p class="mb-1 text-muted small">
-                    ⏰ ${notification.time}
-                </p>
+                <p class="mb-1 text-muted small">⏰ ${notification.time}</p>
                 ${notification.notes ? `<small class="text-secondary d-block mb-2">${notification.notes}</small>` : ''}
                 <button class="btn btn-sm btn-success w-100 mark-done-btn" data-id="${notification.id}">
                     ✓ تم التناول
@@ -185,15 +169,23 @@ function addNotificationToDropdown(notification) {
         </li>
     `;
     
-    // إزالة رسالة "لا توجد إشعارات"
     dropdown.find('.no-notifications').remove();
-    
-    // إضافة الإشعار في البداية
     dropdown.prepend(item);
 }
 
+function updateDropdownEmpty() {
+    const dropdown = $('.dropdown-menu');
+    if (dropdown.find('.notification-item').length === 0) {
+        dropdown.html('<li class="dropdown-item no-notifications text-center text-muted py-3">لا توجد تذكيرات جديدة</li>');
+    }
+}
+
+function updateBadge(count) {
+    const badge = $('.badge-notification');
+    count > 0 ? badge.text(count).show() : badge.hide();
+}
+
 function checkNotifications() {
-    
     $.ajax({
         url: '/api/notifications/',
         type: 'GET',
@@ -203,7 +195,6 @@ function checkNotifications() {
                     showBrowserNotification(notification);
                     addNotificationToDropdown(notification);
                 });
-                
                 playNotificationSound();
             }
             updateBadgeCount();
@@ -217,26 +208,15 @@ function updateBadgeCount() {
         type: 'GET',
         success: function(response) {            
             if (response.success) {
+                updateBadge(response.count);
+                
                 if (response.count > 0) {
-                    $('.badge-notification').text(response.count).show();                    
-                    // تحديث القائمة المنسدلة بجميع التذكيرات المستحقة
-                    const dropdown = $('.dropdown-menu');
-                    response.reminders.forEach(reminder => {
-                        // إضافة فقط إذا لم يكن موجوداً
-                        if (dropdown.find(`[data-notification-id="${reminder.id}"]`).length === 0) {
-                            addNotificationToDropdown(reminder);
-                        }
-                    });
+                    response.reminders.forEach(addNotificationToDropdown);
                 } else {
-                    $('.badge-notification').hide();
-                    
-                    const dropdown = $('.dropdown-menu');
-                    if (dropdown.find('.notification-item').length === 0) {
-                        dropdown.html('<li class="dropdown-item no-notifications text-center text-muted py-3">لا توجد تذكيرات جديدة</li>');
-                    }
+                    updateDropdownEmpty();
                 }
             }
-        },
+        }
     });
 }
 
@@ -244,43 +224,24 @@ function markAsDone(reminderId) {
     $.ajax({
         url: `/reminders/${reminderId}/mark-done/`,
         type: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken')
-        },
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
         success: function(response) {
             if (response.success) {                
-                // إزالة من القائمة المنسدلة
                 $(`.notification-item[data-notification-id="${reminderId}"]`).fadeOut(300, function() {
                     $(this).remove();
-                    
-                    // إذا أصبحت القائمة فارغة، أضف رسالة
-                    if ($('.dropdown-menu .notification-item').length === 0) {
-                        $('.dropdown-menu').html('<li class="dropdown-item no-notifications text-center text-muted py-3">لا توجد تذكيرات جديدة</li>');
-                    }
+                    updateDropdownEmpty();
                 });
                 
-                // إزالة من المجموعة المحلية
                 shownNotifications.delete(reminderId);
-                
-                // تحديث العدد
                 updateBadgeCount();
                 
-                // تحديث الجدول إذا كان في صفحة التذكيرات
                 if ($('#medTable').length) {
-                    $.get('/reminders/table/', function(html) {
-                        $('#medTable').html(html);
-                    });
+                    $.get('/reminders/table/', html => $('#medTable').html(html));
                 }
             }
-        },
+        }
     });
 }
-
-$(document).on('click', '.mark-done-btn', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    markAsDone($(this).data('id'));
-});
 
 function playNotificationSound() {
     try {
@@ -299,23 +260,21 @@ function playNotificationSound() {
         
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);        
-    } catch (e) {
-    }
+    } catch (e) {}
 }
 
-$(document).ready(function() {    
-    const now = new Date();
-
+$(document).ready(function() {
     requestNotificationPermission();
-    
-    // التحقق الأولي
     checkNotifications();
     updateBadgeCount();
     
-    // التحقق كل 30 ثانية
-    notificationCheckInterval = setInterval(function() {
-        checkNotifications();
-    }, 30000); 
+    notificationCheckInterval = setInterval(checkNotifications, 30000);
+});
+
+$(document).on('click', '.mark-done-btn', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    markAsDone($(this).data('id'));
 });
 
 $(window).on('beforeunload', function() {

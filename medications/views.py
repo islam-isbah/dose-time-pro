@@ -12,24 +12,24 @@ def index(request):
     if 'user_id' not in request.session:
         request.session['login'] = False
     else:
-        return redirect("/home/")
-    return render(request, 'auth/login.html')
+        return redirect("/login/")
+    return render(request, 'home.html')
 
 #Function to handle registration
 def register(request):
     if request.method == 'POST':
         errors = models.User.objects.basic_validator(request.POST)
-        if len(errors) > 0:
-            # if the errors dictionary contains anything redirect the user back to the form to fix the errors
-            context ={'errors':errors}
-            return render(request,'auth/register.html',context)
-        else:
-            #if the errors object is empty, that means there is no errors!
-            user = models.register(request.POST)
-            request.session['login'] = True
-            request.session['user_id'] = user.id
-            request.session['email'] = user.email
-            return redirect("/home/")
+
+        if errors:
+            return JsonResponse({"success": False, "errors": errors})
+
+        user = models.register(request.POST)
+        request.session['login'] = True
+        request.session['user_id'] = user.id
+        request.session['email'] = user.email
+
+        return JsonResponse({"success": True})
+
     return render(request, 'auth/register.html')
 
 #function to handle login
@@ -49,12 +49,12 @@ def login(request):
 
 #function to render home page
 def home_page(request):
-    if 'user_id' not in request.session :
-        return redirect("/")
-    else:
-        context={
-            'user':models.get_specific_user(request)
-        }
+    user = models.get_current_user(request)
+
+    context = {
+        'user': user,
+        'is_authenticated': bool(user)
+    }
     return render(request, "home.html", context)
 
 #function to destroy session
@@ -65,8 +65,13 @@ def logout(request):
 
 #function to render my_medications page
 def medication_list(request):
+    user = models.get_current_user(request)
+    if not user:
+        return redirect('/')
+    
     context = {
-        'all_meds':models.get_all_meds()
+        'all_meds':models.get_all_meds(user),
+        'is_authenticated': bool(user)
     }
     return render(request, "my_medications.html", context)
 
@@ -90,8 +95,12 @@ def add_medications(request):
 
 #function to render only the medications table (for AJAX)
 def medications_table(request):
+    user = models.get_current_user(request)
+    if not user:
+        return redirect('/')
+    
     context = {
-        'all_meds': models.get_all_meds()
+        'all_meds': models.get_all_meds(user)
     }
     return render(request, "partials/medications_table.html", context)
 
@@ -127,11 +136,12 @@ def edit_medications(request,id):
 
 
 def reminder_page(request):
-    user =models.get_logged_user(request)
+    user = models.get_current_user(request)
     if not user:
         return redirect('/')
 
-    context =models.get_user_data(user)
+    context = models.get_user_data(user)
+    context['is_authenticated'] = True
     return render(request, "my_reminders.html", context)
 
 def create_reminder(request):
@@ -169,7 +179,7 @@ def edit_reminders_page(request, id):
     context = {
         'reminder': reminder,
         'medications': models.get_user_data(user),
-        'all_meds': models.get_all_meds(),
+        'all_meds': models.get_all_meds(user),
         'reminder_medication_id': reminder_medication_id,
     }
     return render(request, "partials/edit_reminders.html", context)
@@ -197,10 +207,26 @@ def delete_reminders(request, id):
     return JsonResponse({"success": False, "error": "Invalid request"}, status=400)
 
 def about_page(request):
-    return render(request, "about_us.html")
+    user = models.get_current_user(request)
+    if not user:
+        return redirect('/')
+    
+    context = {
+        'is_authenticated': True
+    }
+
+    return render(request, "about_us.html", context)
 
 def contact_page(request):
-    return render(request, "contact.html")
+    user = models.get_current_user(request)
+    if not user:
+        return redirect('/')
+    
+    context = {
+        'is_authenticated': True
+    }
+    
+    return render(request, "contact.html", context)
 
 def create_contact(request):
     if request.method == "POST":

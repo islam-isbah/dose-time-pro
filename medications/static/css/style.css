@@ -155,6 +155,10 @@
         right: 30px !important
     }
 
+    .logout-btn {
+        margin-inline-end: 5px
+    }
+
     @media (max-width: 768px) {
         .about-container {
             width: 90%;

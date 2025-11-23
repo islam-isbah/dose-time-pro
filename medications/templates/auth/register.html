@@ -19,7 +19,8 @@
                         <div class="card-body">
 
                             <h3 class="mb-3 text-center">CREATE ACCOUNT</h3>
-                            <form action="/register/" method="post" class="needs-validation" novalidate>
+                            <form id="registerForm" action="/register/" method="post" class="needs-validation"
+                                novalidate>
                                 <!-- Add js validation -->
                                 {% csrf_token %}
 
@@ -36,11 +37,11 @@
                                     <div>
                                         {% if errors.your_name %}
                                         {% for error in errors.your_name %}
-                                    
+
                                         <small class="text-danger">{{error}}</small>
                                         {% endfor %}
                                         {% endif %}
-                                    
+
                                     </div>
                                 </div>
 
@@ -60,7 +61,7 @@
                                         <small class="text-danger">{{error}}</small>
                                         {% endfor %}
                                         {% endif %}
-                                    
+
                                     </div>
                                 </div>
 
@@ -77,11 +78,11 @@
                                     <div>
                                         {% if errors.password %}
                                         {% for error in errors.password %}
-                                    
+
                                         <small class="text-danger">{{error}}</small>
                                         {% endfor %}
                                         {% endif %}
-                                    
+
                                     </div>
                                 </div>
                                 <!-- CONFIRM PASSWORD -->
@@ -97,11 +98,11 @@
                                     <div>
                                         {% if errors.c_password %}
                                         {% for error in errors.c_password %}
-                                    
+
                                         <small class="text-danger">{{error}}</small>
                                         {% endfor %}
                                         {% endif %}
-                                    
+
                                     </div>
                                 </div>
 
@@ -119,8 +120,42 @@
         </div>
     </section>
 
+    <script src="{% static 'js/jquery-3.6.4.min.js' %}"></script>
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        $("#registerForm").on("submit", function (e) {
+            e.preventDefault();
+
+            let form = $(this);
+
+            if (!this.checkValidity()) {
+                this.classList.add("was-validated");
+                return;
+            }
+
+            form.find("small.text-danger").remove();
+
+            ajaxRequest({
+                url: form.attr("action"),
+                data: form.serialize(),
+                onSuccess: function (res) {
+                    if (res.success) {
+                        window.location.href = "/login/";
+                    }
+                    else if (res.errors) {
+                        for (let field in res.errors) {
+                            let input = form.find(`[name="${field}"]`);
+
+                            res.errors[field].forEach(errorMsg => {
+                                input.after(`<small class="text-danger d-block">${errorMsg}</small>`);
+                            });
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
