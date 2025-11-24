@@ -8,8 +8,7 @@
 
     <form id="editForm" action="/reminders/{{reminder.id}}/update/" method="post">
         {% csrf_token %}
-        <div class="mb-3">
-    {% csrf_token %}
+
     <div class="mb-3">
         <select name="name" class="form-select" required>
             {% for med in all_meds %}
@@ -23,7 +22,6 @@
         </select>
     </div>
 
-        </div>
         <div class="mb-3">
             <label class="form-label">Time</label>
             <input type="datetime-local" name="reminder_time" value="{{ reminder.reminder_time|date:'Y-m-d\\TH:i' }}"

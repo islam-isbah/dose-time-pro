@@ -3,6 +3,8 @@ import re
 import bcrypt
 from datetime import datetime
 from django.core.mail import send_mail
+import pytz
+from django.utils import timezone
 
 # function to check if the user email is exists or not
 def is_exists(email):
@@ -118,6 +120,44 @@ class ReminderManager(models.Manager):
             errors['notes'] = "Notes cannot exceed 255 characters."
 
         return errors
+    def due_notifications(self, user, shown_ids=None):
+        shown_ids = shown_ids or []
+        palestine_tz = pytz.timezone('Asia/Jerusalem')
+        now = timezone.now()
+        due = self.filter(user=user, reminder_time__lte=now, status="Pending").order_by('-reminder_time')
+        notifications, new_ids = [], list(shown_ids)
+        for r in due:
+            if r.id not in shown_ids:
+                notifications.append({
+                    "id": r.id,
+                    "medication": r.medication.name,
+                    "time": r.reminder_time.astimezone(palestine_tz).strftime("%Y-%m-%d %H:%M"),
+                    "notes": r.notes or ""
+                })
+                new_ids.append(r.id)
+        return notifications, new_ids
+
+    def upcoming_reminders(self, user, limit=10):
+        palestine_tz = pytz.timezone('Asia/Jerusalem')
+        now = timezone.now()
+        due = self.filter(user=user, reminder_time__lte=now, status="Pending").order_by('-reminder_time')[:limit]
+        return [{
+            "id": r.id,
+            "medication": r.medication.name,
+            "time": r.reminder_time.astimezone(palestine_tz).strftime("%Y-%m-%d %H:%M"),
+            "notes": r.notes or ""
+        } for r in due], self.filter(user=user, reminder_time__lte=now, status="Pending").count()
+
+    def mark_done(self, reminder_id, user, shown_ids=None):
+        r = self.filter(id=reminder_id, user=user).first()
+        if not r:
+            return False, shown_ids
+        r.status = "Done"
+        r.save()
+        if shown_ids and reminder_id in shown_ids:
+            shown_ids.remove(reminder_id)
+        return True, shown_ids
+
 
 #create reminder table in database
 class Reminder(models.Model):
