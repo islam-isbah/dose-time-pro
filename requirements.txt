@@ -3,3 +3,5 @@ bcrypt==5.0.0
 Django==5.2.7
 pytz==2025.2
 tzdata==2025.2
+mysqlclient==2.2.7
+
