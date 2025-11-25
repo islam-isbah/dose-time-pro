@@ -165,6 +165,15 @@
             margin: 40px auto;
         }
 
+        .dropdown.position-relative {
+            margin-bottom: 20px;
+        }
+
+        .dropdown-menu-end[data-bs-popper] {
+            left: 0;
+            right: auto !important;
+        }
+
         .about-card h2 {
             font-size: 24px;
         }
@@ -181,6 +190,15 @@
 
         .about-card h2 {
             font-size: 22px;
+        }
+
+        .dropdown-menu-end[data-bs-popper] {
+            left: 0;
+            right: auto !important;
+        }
+
+        .dropdown.position-relative {
+            margin-bottom: 20px;
         }
 
         .btn-main {
